@@ -8,11 +8,54 @@
 import SwiftUI
 
 struct Dashboard: View {
+	@Bindable var appSession: AppSession;
+	@State var DashboardVM : DashboardViewModel;
+	
+	init(appSession: AppSession){
+		self.appSession = appSession;
+		DashboardVM = DashboardViewModel(session: appSession);
+	}
+	
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+		VStack{
+			Text("Dashboard")
+				.font(.title)
+			Button("Reload"){
+				Task{
+					await DashboardVM.load();
+				}
+			}
+			Text("Disks")
+				.font(.title2)
+			ScrollView{
+				VStack{
+					ScrollView(.horizontal){
+						HStack{
+							ForEach(DashboardVM.diskInfo){info in
+								DiskCard(info:info)
+							}
+						}
+					}
+				}
+			}
+			
+		}
+		.task{
+			await DashboardVM.load()
+		}
+		.alert(
+			"Error",
+			isPresented: Binding(get: {DashboardVM.errorMessage != nil}, set: {_ in DashboardVM.errorMessage = nil})
+		){
+			Button("OK"){
+				DashboardVM.errorMessage = nil
+			}
+		} message:{
+			Text(DashboardVM.errorMessage ?? "")
+		}
     }
 }
 
 #Preview {
-    Dashboard()
+	Dashboard(appSession: AppSession())
 }

@@ -11,8 +11,15 @@ struct SystemInfo: Codable{
 	let model: String
 	let cores: Int
 	let physical_cores: Int
-	let uptimte: String
-	let uptime_seconds:Int
+	let uptime: String
+	let uptime_seconds:Double
 	let timezone: String
 	let system_manufacturer: String
 }
+
+enum SystemState: String, Codable{
+	case ready = "READY";
+	case booting = "BOOTING";
+	case shutting_down = "SHUTTING_DOWN";
+}
+
