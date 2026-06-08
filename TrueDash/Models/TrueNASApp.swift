@@ -13,7 +13,7 @@ enum AppState: String, Codable{
 	case stopping = "STOPPING"
 }
 
-struct TrueNASApp: Codable{
+struct TrueNASApp: Codable, Identifiable{
 	var name: String
 	var id: String
 	var state: AppState
@@ -24,7 +24,7 @@ struct TrueNASApp: Codable{
 	var version: String
 	var metadata: AppMetadata?
 	var notes: String?
-	var portals: [String]
+	var portals: [String:String]
 }
 
 struct AppMetadata: Codable{

@@ -17,54 +17,94 @@ struct Dashboard: View {
 	}
 	
     var body: some View {
-		VStack{
-			Text("Dashboard")
-				.font(.title)
-			Button("Reload"){
-				Task{
-					//Reload upon request
-					await DashboardVM.load();
-				}
+		if DashboardVM.isLoading {
+			VStack{
+				ProgressView()
+				Text("Loading TrueNAS Data...")
 			}
-			Text("Disks")
-				.font(.title2)
-			ScrollView{
+			.task{
+				await DashboardVM.load()
+				//Load dashboard ViewModel data when Dashboard is in view
+			}
+		}else{
+			NavigationStack{
 				VStack{
-					ScrollView(.horizontal){
-						HStack{
-							ForEach(DashboardVM.diskInfo){info in
-								DiskCard(info:info)
-									.onTapGesture {
-										DashboardVM.setCurrentDiskInfo(d: info)
-										DashboardVM.showDiskInfoPopup()
-									}
+					Text(DashboardVM.systemInfo?.hostname ?? "Unknown Host Name")
+						.font(.title)
+					Text(appSession.host)
+						.font(.subheadline)
+					
+					Spacer()
+					
+					if let sysInfo = DashboardVM.systemInfo{
+						CPUOverview(systemInfo: sysInfo)
+					}
+					
+					Spacer()
+					
+					List{
+						NavigationLink{
+							List(DashboardVM.apps){app in
+								Text(app.name)
+							}
+						} label:{
+							RowView(icon: "app.badge", text: "Apps")
+						}
+						
+						NavigationLink{
+							DiskView(DashboardVM: DashboardVM)
+						} label:{
+							RowView(icon: "externaldrive", text: "Disks"){
+//								Text("\(DashboardVM.disks?.used.count ?? 0) Disks used")
+//									.font(.caption2)
 							}
 						}
+						
+						NavigationLink{
+							Text("TODO: Pools View")
+						} label:{
+							RowView(icon: "externaldrive.connected.to.line.below", text: "Pools")
+						}
 					}
+					
+					Spacer()
+				}
+				.alert(
+					"Error",
+					isPresented: Binding(get: {DashboardVM.errorMessage != nil}, set: {_ in DashboardVM.errorMessage = nil})
+				){
+					Button("OK"){
+						DashboardVM.errorMessage = nil
+					}
+				} message:{
+					Text(DashboardVM.errorMessage ?? "")
 				}
 			}
-			.sheet(isPresented: $DashboardVM.showDiskInfo, onDismiss: DashboardVM.hideDiskInfoPopup){
-				DiskCardPopup(diskInfo: DashboardVM.currentDiskInfo)
-					.presentationDetents([.medium])
+			.navigationBarTitleDisplayMode(.inline)
+			.toolbar{
+				DashboardToolbar(DashboardVM: DashboardVM, appSession: appSession)
 			}
-		}
-		.task{
-			await DashboardVM.load()
-			//Load dashboard ViewModel data when Dashboard is in view
-		}
-		.alert(
-			"Error",
-			isPresented: Binding(get: {DashboardVM.errorMessage != nil}, set: {_ in DashboardVM.errorMessage = nil})
-		){
-			Button("OK"){
-				DashboardVM.errorMessage = nil
-			}
-		} message:{
-			Text(DashboardVM.errorMessage ?? "")
 		}
     }
 }
 
 #Preview {
-	Dashboard(appSession: AppSession())
+	let appSession: AppSession = {
+		let session = AppSession()
+		session.host = "192.168.1.155"
+		session.host = "192.168.1.155"
+		session.apiKey = "6-KuP10wYlD9tqN38Fm2bPGIcm8xeemyBQCA1aPOqrTtL92PGHvN6xkVf9nu1KDa2W"
+		do{
+			Task{
+				try await session.ensureConnected()
+			}
+		}catch{
+			print(error)
+		}
+		return session
+	}()
+	
+	NavigationStack{
+		Dashboard(appSession: appSession)
+	}
 }

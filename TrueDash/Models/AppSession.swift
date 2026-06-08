@@ -13,7 +13,7 @@ enum SessionError: Error{
 
 @Observable
 final class AppSession{
-	let client = TrueNASClient()
+	let client: TrueNASClient = TrueNASClient();
 	var authService:TrueNASAuthService;
 	var host: String = "";
 	var apiKey: String = "";
@@ -22,7 +22,7 @@ final class AppSession{
 	var serverAuthState: ServerAuthState = .notAuthenticated;
 	
 	init(){
-		authService = TrueNASAuthService(client: client);
+		authService = TrueNASAuthService(client: client)
 	}
 	
 	func ensureConnected() async throws{
@@ -37,5 +37,12 @@ final class AppSession{
 		guard authenticated else{
 			throw SessionError.authenticationFailed
 		}
+	}
+	
+	func logout(){
+		print("Logging Out")
+		self.client.disconnect()
+		self.authState = .undefined
+		self.serverAuthState = .notAuthenticated
 	}
 }

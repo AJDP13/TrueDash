@@ -12,6 +12,8 @@ final class DashboardViewModel{
 	var systemInfo: SystemInfo?;
 	var disks: DiskList?;
 	var diskTemperatures: DiskTemperatures = [:];
+	var apps: [TrueNASApp] = []
+	
 	var isLoading: Bool = true;
 	
 	var currentDiskInfo: DiskInfo?
@@ -30,23 +32,28 @@ final class DashboardViewModel{
 	var session: AppSession;
 	var client: TrueNASClient;
 	var dashService: DashboardService;
+	var appService: AppService;
 	
 	init(session: AppSession){
 		self.session = session;
 		self.client = session.client;
-		self.dashService = DashboardService(client: session.client);
+		self.dashService = DashboardService(client: session.client)
+		self.appService = AppService(client: session.client)
 	}
 	
 	func load() async{
+		isLoading = true;
 		do{
 			try await session.ensureConnected();
 			systemInfo = try await dashService.getSystemInfo()
 			disks = try await dashService.getDisks()
 			diskTemperatures = try await dashService.getDiskTemps()
+			apps = try await appService.listApps()
 		}catch{
 			print(error);
 			errorMessage = error.localizedDescription
 		}
+		isLoading = false
 	}
 	
 	func setCurrentDiskInfo(d: DiskInfo){
