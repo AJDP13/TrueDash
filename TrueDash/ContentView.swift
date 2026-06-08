@@ -55,7 +55,9 @@ struct UndefinedAuthStateView: View{
 struct AuthenticatedAuthStateView: View{
 	@Bindable var session: AppSession;
 	var body: some View{
-		Dashboard(appSession: session);
+		NavigationStack{
+			Dashboard(appSession: session);
+		}
 	}
 }
 

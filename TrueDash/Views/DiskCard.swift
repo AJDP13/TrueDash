@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct DiskCard: View{
-	let info: DiskInfo
+	var info: DiskInfo
 	
 	var body: some View{
 		GroupBox{

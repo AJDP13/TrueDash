@@ -1,5 +1,5 @@
 //
-//  App.swift
+//  TrueNASApp.swift
 //  TrueDash
 //
 //  Created by Arun Dutta-Plummer on 07/06/2026.

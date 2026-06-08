@@ -22,6 +22,7 @@ struct Dashboard: View {
 				.font(.title)
 			Button("Reload"){
 				Task{
+					//Reload upon request
 					await DashboardVM.load();
 				}
 			}
@@ -33,15 +34,23 @@ struct Dashboard: View {
 						HStack{
 							ForEach(DashboardVM.diskInfo){info in
 								DiskCard(info:info)
+									.onTapGesture {
+										DashboardVM.setCurrentDiskInfo(d: info)
+										DashboardVM.showDiskInfoPopup()
+									}
 							}
 						}
 					}
 				}
 			}
-			
+			.sheet(isPresented: $DashboardVM.showDiskInfo, onDismiss: DashboardVM.hideDiskInfoPopup){
+				DiskCardPopup(diskInfo: DashboardVM.currentDiskInfo)
+					.presentationDetents([.medium])
+			}
 		}
 		.task{
 			await DashboardVM.load()
+			//Load dashboard ViewModel data when Dashboard is in view
 		}
 		.alert(
 			"Error",

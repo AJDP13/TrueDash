@@ -14,6 +14,9 @@ final class DashboardViewModel{
 	var diskTemperatures: DiskTemperatures = [:];
 	var isLoading: Bool = true;
 	
+	var currentDiskInfo: DiskInfo?
+	var showDiskInfo: Bool = false;
+	
 	var errorMessage: String?
 	
 	var diskInfo: [DiskInfo]{
@@ -44,5 +47,17 @@ final class DashboardViewModel{
 			print(error);
 			errorMessage = error.localizedDescription
 		}
+	}
+	
+	func setCurrentDiskInfo(d: DiskInfo){
+		self.currentDiskInfo = d
+	}
+	
+	func showDiskInfoPopup(){
+		self.showDiskInfo = true
+	}
+	
+	func hideDiskInfoPopup(){
+		self.showDiskInfo = false
 	}
 }
