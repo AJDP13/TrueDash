@@ -19,17 +19,33 @@ struct ContentView: View {
 		_vm = State(initialValue: ConnectionViewModel(session: session));
 	}
 	
-    var body: some View {
-		switch appSession.authState {
-			case .undefined:
-				UndefinedAuthStateView(vm: vm)
-			case .authenticating:
-				AuthenticatingAuthStateView()
-			case .authenticated:
-				AuthenticatedAuthStateView(session: appSession)
-			case .notAuthenticated:
-				UnAuthenticatedAuthStateView(vm: vm);
-		}
+    var body: some View {		
+		ZStack {
+				switch appSession.authState {
+				case .undefined:
+					UndefinedAuthStateView(vm: vm)
+
+				case .authenticating:
+					AuthenticatingAuthStateView()
+
+				case .authenticated:
+					AuthenticatedAuthStateView(session: appSession)
+
+				case .notAuthenticated:
+					UnAuthenticatedAuthStateView(vm: vm)
+				}
+			}
+			.alert(
+				"Error",
+				isPresented: Binding(
+					get: { appSession.currentError != nil },
+					set: { if !$0 { appSession.currentError = nil } }
+				)
+			) {
+				Button("OK") { }
+			} message: {
+				Text(appSession.currentError?.localizedDescription ?? "")
+			}
     }
 }
 

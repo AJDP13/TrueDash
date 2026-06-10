@@ -18,6 +18,8 @@ final class AppSession{
 	var host: String = "";
 	var apiKey: String = "";
 	
+	var currentError: Error?
+	
 	var authState: AppAuthState = .undefined;
 	var serverAuthState: ServerAuthState = .notAuthenticated;
 	

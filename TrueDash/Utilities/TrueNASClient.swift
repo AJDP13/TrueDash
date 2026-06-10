@@ -27,6 +27,8 @@ enum ConnectionState{
 	case disconnected, connecting, connected
 }
 
+struct EmptyResponse: Codable {}
+
 final class TrueNASClient {
 	private var socket: URLSessionWebSocketTask?
 	private let session: URLSession;
@@ -54,7 +56,7 @@ final class TrueNASClient {
 	
 	func connect(host: String) throws{
 		guard let url = URL(string: "wss://\(host)/api/current") else{
-			throw ClientError.invalidURL;
+			throw TrueNASError.network
 		}
 		
 		self.host = host;
@@ -96,6 +98,14 @@ final class TrueNASClient {
 					print("Websocket receive failed: ", failure);
 					self.connectionState = .disconnected
 					self.disconnect();
+					
+					let error = TrueNASError.disconnected
+
+					self.pendingRequests.values.forEach {
+						$0(.failure(error))
+					}
+
+					self.pendingRequests.removeAll()
 			}
 		}
 	}
@@ -118,6 +128,21 @@ final class TrueNASClient {
 
 		}catch{
 			print(error)
+		}
+	}
+	
+	private func mapRPCError(_ error: JSONRPCError) -> TrueNASError {
+
+		switch error.data?.errname {
+
+		case "EACCES":
+			return .unauthorized
+
+		default:
+			return .server(
+				error.data?.reason ??
+				error.message
+			)
 		}
 	}
 	
@@ -145,15 +170,28 @@ final class TrueNASClient {
 						
 					print(data)
 						
+					if T.self == Void.self {
+							continuation.resume(returning: () as! T)
+							return
+						}
+						
 					do {
 
 						let response = try JSONDecoder().decode(
 							JSONRPCResponse<T>.self,
 							from: data
 						)
+						
+						if let error = response.error {
+							throw self.mapRPCError(error)
+						}
+
+						guard let result = response.result else {
+							throw TrueNASError.invalidResponse
+						}
 
 						continuation.resume(
-							returning: response.result
+							returning: result
 						)
 
 					} catch {
@@ -175,6 +213,7 @@ final class TrueNASClient {
 	}
 	
 	private func handleMessage(_ text: String){
+		print("Received: \(text)")
 		guard let data = text.data(using: .utf8) else{
 			return
 		}

@@ -14,7 +14,8 @@ final class DashboardViewModel{
 	var diskTemperatures: DiskTemperatures = [:];
 	var apps: [TrueNASApp] = []
 	
-	var isLoading: Bool = true;
+	var isLoading: Bool = false;
+	var initDone: Bool = false;
 	
 	var currentDiskInfo: DiskInfo?
 	var showDiskInfo: Bool = false;
@@ -41,8 +42,18 @@ final class DashboardViewModel{
 		self.appService = AppService(client: session.client)
 	}
 	
+	func initLoad() async{
+		guard !initDone else {return}
+		await load();
+		initDone = true;
+	}
+	
 	func load() async{
-		isLoading = true;
+		guard !isLoading else { return }
+
+		isLoading = true
+		defer { isLoading = false }
+		
 		do{
 			try await session.ensureConnected();
 			systemInfo = try await dashService.getSystemInfo()

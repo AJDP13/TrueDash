@@ -6,7 +6,19 @@
 //
 
 struct JSONRPCResponse<T: Codable>: Codable{
-	let jsonrpc: String;
-	let result: T;
-	let id: Int;
+	let result: T?
+	let id: Int
+	let error: JSONRPCError?
+}
+
+struct JSONRPCError: Codable {
+	let code: Int
+	let message: String
+	let data: JSONRPCErrorData?
+}
+
+struct JSONRPCErrorData: Codable {
+	let error: Int?
+	let errname: String?
+	let reason: String?
 }

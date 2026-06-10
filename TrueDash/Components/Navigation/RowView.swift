@@ -26,9 +26,9 @@ struct RowView<Subtitle: View>: View{
 	var body: some View{
 		HStack{
 			Image(systemName: icon)
-				.resizable()
-				.aspectRatio(contentMode: .fit)
-				.frame(width: 50)
+//				.resizable()
+//				.aspectRatio(contentMode: .fit)
+//				.frame(width: 50)
 				.padding()
 			
 			VStack{
